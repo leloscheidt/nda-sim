@@ -63,6 +63,14 @@ public class NDA implements Automata {
 
     @Override
     public boolean recognize(String text) {
+        char[] tokens = text.toCharArray();
+
+        for(char token : tokens) {
+            if(!this.alphabet.contains(String.valueOf(token))) {
+                return false;
+            }
+        }
+        
         State actual = this.initial;
 
         return this.recognize(text, actual);
