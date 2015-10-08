@@ -1,0 +1,5 @@
+Q = {A;B;C;D;E}
+E = {a;b}
+S = {A[b-B,C];B[a-A];C[-D];D[-C];D[b-E]}
+q = A
+F = {E}

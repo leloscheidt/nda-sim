@@ -56,8 +56,16 @@ public class Initializer {
         String test = "";
         
         do {
-            System.out.print("\nString to test: ");
+            System.out.print("\nDo you want to test the empty string?(Y/N): ");
             test = scanner.next();
+            
+            if(test.toUpperCase().equals("Y")) {
+                test = "";
+            
+            } else {
+                System.out.print("\nString to test: ");
+                test = scanner.next();
+            }
 
             if (automata.recognize(test)) {
                 System.out.println("The automata recognized the string");
@@ -65,9 +73,10 @@ public class Initializer {
             } else {
                 System.out.println("The automata NOT recognized the string");
             }
-            System.out.print("\nDo you want to test another string?(Y/N) ");
+            System.out.print("\nDo you want to test another string?(Y/N): ");
             test = scanner.next();
 
         } while (test.toUpperCase().equals("Y"));
+        System.out.println("-- Bye!");
     }
 }

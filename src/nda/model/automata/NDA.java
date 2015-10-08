@@ -2,6 +2,7 @@ package nda.model.automata;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,7 +18,10 @@ public class NDA implements Automata {
     private Map<Integer, State> finals;
     private Set<String> alphabet;
     private State initial;
-
+    
+    private Integer index;
+    private Set<String> visited;
+    
     @Override
     public void addStates(String[] states) {
         this.states = new HashMap<String, State>(states.length);
@@ -70,10 +74,24 @@ public class NDA implements Automata {
                 return false;
             }
         }
-        
+
+        this.clean();
         State actual = this.initial;
 
         return this.recognize(text, actual);
+    }
+
+    /**
+     * Clean all visited states and transitions.
+     */
+    private void clean() {
+        Iterator<String> iterator = this.states.keySet().iterator();
+        
+        while(iterator.hasNext()) {
+            this.states.get(iterator.next()).clean();
+        }
+        
+        this.visited = null;
     }
 
     /**
@@ -86,9 +104,24 @@ public class NDA implements Automata {
      */
     private boolean recognize(String text, State actual) {
         if(text.isEmpty()) {
-            return this.finals.containsKey(actual.getId());
+            if(this.finals.containsKey(actual.getId())) {
+                return true;
+            
+            } else if(!actual.hasEpsilonTransition()) {
+                return false;
+            
+            } else {
+                this.clean();
+                return isFinalReachable(actual);
+            }
         }
 
+        if(this.index == null) {
+            this.index = 0;
+        } else {
+            this.index++;
+        }
+        
         String symbol = String.valueOf(text.charAt(0));
         text = text.substring(1);
 
@@ -109,15 +142,53 @@ public class NDA implements Automata {
             return recognized;
             
         } else if(actual.hasEpsilonTransition()) {
-            String[] epsilonTransitions = actual.getTransitionWith("");
+            String[] epsilonTransitions = actual.getEpsilonTransitions(this.index);
             boolean recognized = false;
             
-            for(int i = 0; i < epsilonTransitions.length && !recognized; i++) {
+            for(int i = 0; i < epsilonTransitions.length && !recognized && epsilonTransitions[i] != null; i++) {
+                actual.visit(this.index,epsilonTransitions[i]);
+                this.index--;
+                
                 recognized = this.recognize(symbol + text, this.states.get(epsilonTransitions[i]));
             }
             return recognized;
         }
         
         return false;
+    }
+    
+    /**
+     * Check if at least one final state is reachable from the given state using only epsilon transitions.
+     * 
+     * @param actual The state test from.
+     * 
+     * @return true if one final state is reachable from the given state, false otherwise.
+     */
+    private boolean isFinalReachable(State actual) {
+        if(this.finals.containsKey(actual.getId())) {
+            return true;
+        }
+        
+        if(this.visited == null) {
+            this.visited = new HashSet<String>();
+        }
+        
+        if(this.visited.contains(actual.getLabel())) {
+            return false;
+        
+        } else {
+            this.visited.add(actual.getLabel());
+            String[] array = actual.getEpsilonTransitions(0);
+            
+            boolean recognized = false;
+
+            if(array != null) {
+                
+                for(int i = 0; i < array.length && !recognized; i++) {
+                    recognized = this.isFinalReachable(this.states.get(array[i]));
+                }
+            }
+            return recognized;
+        }
     }
 }

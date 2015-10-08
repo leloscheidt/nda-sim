@@ -1,6 +1,8 @@
 package nda.model.automata;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,6 +17,9 @@ public class State {
     private final String label;
     private final Map<String, String[]> transitions;
 
+    private final Map<Integer, List<String>> visitedEpsilonTransitions;
+    
+    
     /**
      * Default constructor.
      * 
@@ -25,6 +30,7 @@ public class State {
         this.id = id;
         this.label = label;
         this.transitions = new HashMap<String, String[]>();
+        this.visitedEpsilonTransitions = new HashMap<Integer, List<String>>();
     }
 
     /**
@@ -52,6 +58,29 @@ public class State {
     public String[] getTransitionWith(String symbol) {
         return this.transitions.get(symbol);
     }
+    
+    /**
+     * Return the next states mapped with epsilon transitions that already have been not used by the given character index.
+     * 
+     * @param index The index of the string
+     * 
+     * @return The array of state label.
+     */
+    public String[] getEpsilonTransitions(Integer index) {
+        String[] all = this.getTransitionWith("");
+        
+        if(this.visitedEpsilonTransitions.containsKey(index)) {
+            List<String> visited = this.visitedEpsilonTransitions.get(index);
+            
+            for(int i = 0; i < all.length; i++) {
+                if(visited.contains(all[i])) {
+                    all[i] = null;
+                }
+            }
+        }
+        
+        return all;
+    }
 
     /**
      * Check of the state has epsilon transitions.
@@ -74,5 +103,24 @@ public class State {
      */
     public String getLabel() {
         return label;
+    }
+
+    public void visit(Integer index, String label) {
+        if(this.visitedEpsilonTransitions.containsKey(index)) {
+            this.visitedEpsilonTransitions.get(index).add(label);
+        
+        } else {
+            List<String> labels = new ArrayList<String>();
+            labels.add(label);
+            
+            this.visitedEpsilonTransitions.put(index, labels);
+        }
+    }
+
+    /**
+     * Clean the epsilon transitions map.
+     */
+    public void clean() {
+        this.visitedEpsilonTransitions.clear();
     }
 }
