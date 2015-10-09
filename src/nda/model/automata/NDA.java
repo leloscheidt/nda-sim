@@ -127,23 +127,25 @@ public class NDA implements Automata {
 
         String[] nexts = actual.getTransitionWith(symbol);
 
+        boolean recognized = false;
+
         if (nexts == null && !actual.hasEpsilonTransition()) {
             return false;
             
         } else if (nexts != null && nexts.length == 1) {
-            return this.recognize(text, this.states.get(nexts[0]));
+            recognized = this.recognize(text, this.states.get(nexts[0]));
             
         } else if(nexts != null) {
-            boolean recognized = false;
+            recognized = false;
             
             for(int i = 0; i < nexts.length && !recognized; i++) {
                 recognized = this.recognize(text, this.states.get(nexts[i]));
             }
-            return recognized;
-            
-        } else if(actual.hasEpsilonTransition()) {
+        } 
+        
+        if(!recognized && actual.hasEpsilonTransition()) {
             String[] epsilonTransitions = actual.getEpsilonTransitions(this.index);
-            boolean recognized = false;
+            recognized = false;
             
             for(int i = 0; i < epsilonTransitions.length && !recognized && epsilonTransitions[i] != null; i++) {
                 actual.visit(this.index,epsilonTransitions[i]);
@@ -151,10 +153,9 @@ public class NDA implements Automata {
                 
                 recognized = this.recognize(symbol + text, this.states.get(epsilonTransitions[i]));
             }
-            return recognized;
         }
         
-        return false;
+        return recognized;
     }
     
     /**
