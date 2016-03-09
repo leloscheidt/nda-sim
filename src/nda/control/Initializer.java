@@ -17,7 +17,7 @@ import nda.util.AutomataUtil;
 public class Initializer {
 
     /**
-     * Main method to run application.
+     * Main method to run application
      * 
      * @param args The arguments.
      */
